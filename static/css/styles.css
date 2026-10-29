@@ -93,3 +93,11 @@ th {
 tr:nth-child(even) td {
     background: #2e2e3d;
 }
+
+img.monster-image {
+    display: block;
+    max-width: 20%;
+    height: auto;
+    margin: 0 auto 24px;
+    border-radius: 10px;
+}
