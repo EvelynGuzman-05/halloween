@@ -8,6 +8,24 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: halloween
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: halloween
     steps:
       - uses: actions/checkout@v4
 
@@ -19,11 +37,29 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Create database schema
+        run: |
+          python - <<'EOF'
+          from persistence.db import get_connection
+          conn = get_connection()
+          cur = conn.cursor()
+          cur.execute("""
+              CREATE TABLE IF NOT EXISTS monster (
+                  id INT AUTO_INCREMENT PRIMARY KEY,
+                  name VARCHAR(100) NOT NULL,
+                  power VARCHAR(100) NOT NULL
+              )
+          """)
+          conn.commit()
+          cur.close()
+          conn.close()
+          EOF
+
       - name: Check that the app loads
         run: python -c "import app"
 
       - name: Run tests
-        run: python -m pytest 
+        run: python -m pytest
 
   deploy:
     needs: check
