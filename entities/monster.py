@@ -26,3 +26,4 @@ class Monster:
         connection.commit()
         cursor.close()
         connection.close()
+        return True
